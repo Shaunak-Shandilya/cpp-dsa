@@ -16,13 +16,15 @@ public:
 
     AVL() { root = nullptr; }
 
-    // Helper methods for inserting
+    // Helper methods for inserting/deleting
     int NodeHeight(Node* p);
     int BalanceFactor(Node* p);
     Node* LLRotation(Node* p);
     Node* RRRotation(Node* p);
     Node* LRRotation(Node* p);
     Node* RLRotation(Node* p);
+    Node* InPre(Node* p);
+    Node* InSucc(Node* p);
 
     // Insert
     Node* rInsert(Node* p, int key);
@@ -31,6 +33,9 @@ public:
     void Inorder(Node* p);
     void Inorder() { Inorder(root); }
     Node* getRoot() { return root; }
+
+    // Delete
+    Node* Delete(Node* p, int key);
 };
 
 int AVL::NodeHeight(Node* p) {
@@ -133,6 +138,20 @@ Node* AVL::RLRotation(Node* p) {
     return prl;
 }
 
+Node* AVL::InPre(Node* p) {
+    while (p && p->rchild != nullptr) {
+        p = p->rchild;
+    }
+    return p;
+}
+
+Node* AVL::InSucc(Node* p) {
+    while (p && p->lchild != nullptr) {
+        p = p->lchild;
+    }
+    return p;
+}
+
 Node* AVL::rInsert(Node* p, int key) {
     Node* t;
     if (p == nullptr) {
@@ -179,30 +198,82 @@ void AVL::Inorder(Node* p) {
     }
 }
 
+Node* AVL::Delete(Node* p, int key) {
+    if (p == nullptr) {
+        return nullptr;
+    }
+
+    if (p->lchild == nullptr && p->rchild == nullptr) {
+        if (p == root) {
+            root = nullptr;
+        }
+        delete p;
+        return nullptr;
+    }
+
+    if (key < p->data) {
+        p->lchild = Delete(p->lchild, key);
+    }
+    else if (key > p->data) {
+        p->rchild = Delete(p->rchild, key);
+    }
+    else {
+        Node* q;
+        if (NodeHeight(p->lchild) > NodeHeight(p->rchild)) {
+            q = InPre(p->lchild);
+            p->data = q->data;
+            p->lchild = Delete(p->lchild, q->data);
+        }
+        else {
+            q = InSucc(p->rchild);
+            p->data = q->data;
+            p->rchild = Delete(p->rchild, q->data);
+        }
+    }
+
+    // Update height
+    p->height = NodeHeight(p);
+
+    // Balance Factor and Rotation
+    if (BalanceFactor(p) == 2 && BalanceFactor(p->lchild) == 1) {  // L1 Rotation
+        return LLRotation(p);
+    }
+    else if (BalanceFactor(p) == 2 && BalanceFactor(p->lchild) == -1) {  // L-1 Rotation
+        return LRRotation(p);
+    }
+    else if (BalanceFactor(p) == -2 && BalanceFactor(p->rchild) == -1) {  // R-1 Rotation
+        return RRRotation(p);
+    }
+    else if (BalanceFactor(p) == -2 && BalanceFactor(p->rchild) == 1) {  // R1 Rotation
+        return RLRotation(p);
+    }
+    else if (BalanceFactor(p) == 2 && BalanceFactor(p->lchild) == 0) {  // L0 Rotation
+        return LLRotation(p);
+    }
+    else if (BalanceFactor(p) == -2 && BalanceFactor(p->rchild) == 0) {  // R0 Rotation
+        return RRRotation(p);
+    }
+
+    return p;
+}
+
 
 int main() {
 
-    // LR Rotation
-    AVL tlr;
-    tlr.root = tlr.rInsert(tlr.root, 50);
-    tlr.root = tlr.rInsert(tlr.root, 10);
-    tlr.root = tlr.rInsert(tlr.root, 20);
+    AVL tree;
 
+    int A[] = { 10, 20, 30, 25, 28, 27, 5 };
+    for (int i = 0; i < sizeof(A) / sizeof(A[0]); i++) {
+        tree.root = tree.rInsert(tree.root, A[i]);
+    }
 
-    tlr.Inorder();
+    tree.Inorder();
     cout << endl;
-    cout << tlr.root->data << endl;
 
-    // RL Rotation
-    AVL trl;
-    trl.root = trl.rInsert(trl.root, 20);
-    trl.root = trl.rInsert(trl.root, 50);
-    trl.root = trl.rInsert(trl.root, 30);
+    tree.Delete(tree.root, 28);
 
-
-    trl.Inorder();
+    tree.Inorder();
     cout << endl;
-    cout << trl.root->data << endl;
 
     return 0;
 }

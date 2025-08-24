@@ -5,28 +5,39 @@
 #include "LLnode.h"
 
 using namespace std;
+/**
+ * Definition for singly-linked list.
+ * LLnode.h
+ * 
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
 
 class Solution {
 public:
     ListNode* deleteDuplicates(ListNode* head) {
         
         //small List size edge cases
-        if (head == nullptr) return head;
-        if (head->next == nullptr) return head;
+        if (!head || !head->next) return head;
 
-        ListNode* trail = head, * lead = head;
+        ListNode* trail = head, * lead = head->next;
 
         while (lead != nullptr) {
-            
-            lead = lead->next;
-
             //deletion program
-            if (lead != nullptr &&  trail->val == lead->val) {
+            if (lead != nullptr && trail->val == lead->val) {
                 lead = lead->next;
-                free(trail->next);
+                //delete trail->next;
                 trail->next = lead;
             }
-            trail = lead;
+            else {
+                trail = lead;
+                lead = lead->next;
+            }
         }
         return head;
     }
